@@ -8,15 +8,23 @@ library(plotly)
 library(readxl)
 weekly_visits <- read_excel("Web Analytics Case Student Spreadsheet.xls", 
                             sheet = "Weekly Visits", skip = 4)
-
+colnames(weekly_visits)<-c("week","visits","unique_visits","pageviews",
+                           "page_visits","avg_time_on_site",
+                           "bounce_rate","%_new_visits")
 
 library(readxl)
 fin <- read_excel("Web Analytics Case Student Spreadsheet.xls", 
                   sheet = "Financials", skip = 4)
 
+colnames(fin)[4]<-c("pounds_sold")
+colnames(fin)[1]<-c("week")
+
 library(readxl)
 pounds <- read_excel("Web Analytics Case Student Spreadsheet.xls", 
                      sheet = "Lbs. Sold", skip = 4)
+colnames(pounds)<-c("week","pounds_sold")
+
+
 library(readxl)
 daily_visits <- read_excel("Web Analytics Case Student Spreadsheet.xls", 
                            sheet = "Daily Visits", skip = 4)
@@ -26,11 +34,11 @@ summary(fin)
 summary(pounds)
 summary(daily_visits)
 #Standard Deviation 
-sd(weekly_visits$Visits)
-sd(weekly_visits$`Unique Visits`)
+sd(weekly_visits$visits)
+sd(weekly_visits$unique_visits)
 sd(fin$Revenue)
 sd(fin$Profit)
-sd(pounds$`Lbs. Sold`)
+sd(pounds$pounds_sold)
 
 
 ##Promotion Schedule
@@ -50,16 +58,16 @@ pre_pounds<- fin[15:35,]
 pro_pounds<- fin[36:52,]
 post_pounds<- fin[53:66,]
 #means for weekly visits
-ini_v_mean<-mean(intial_promotion$Visits)
-pre_v_mean<- mean(pre_promotion$Visits)
-promo_v_mean<- mean(promotion$Visits)
-post_v_mean<- mean(post_promotion$Visits)
+ini_v_mean<-mean(intial_promotion$visits)
+pre_v_mean<- mean(pre_promotion$visits)
+promo_v_mean<- mean(promotion$visits)
+post_v_mean<- mean(post_promotion$visits)
 
 #means for Unique Visits
-ini_uq_mean<-mean(intial_promotion$`Unique Visits`)
-pre_uq_mean<- mean(pre_promotion$`Unique Visits`)
-promo_uq_mean<- mean(promotion$`Unique Visits`)
-post_uq_mean<- mean(post_promotion$`Unique Visits`)
+ini_uq_mean<-mean(intial_promotion$unique_visits)
+pre_uq_mean<- mean(pre_promotion$unique_visits)
+promo_uq_mean<- mean(promotion$unique_visits)
+post_uq_mean<- mean(post_promotion$unique_visits)
 
 #means for revenue
 ini_r_mean<-mean(initial_pounds$Revenue)
@@ -74,16 +82,16 @@ promo_p_mean<- mean(pro_pounds$Profit)
 post_p_mean<- mean(post_pounds$Profit)
 
 #means for LBS Sold
-ini_lbs_mean<-mean(initial_pounds$`Lbs. Sold`)
-pre_lbs_mean<- mean(pre_pounds$`Lbs. Sold`)
-promo_lbs_mean<- mean(pro_pounds$`Lbs. Sold`)
-post_lbs_mean<- mean(post_pounds$`Lbs. Sold`)
+ini_lbs_mean<-mean(initial_pounds$pounds_sold)
+pre_lbs_mean<- mean(pre_pounds$pounds_sold)
+promo_lbs_mean<- mean(pro_pounds$pounds_sold)
+post_lbs_mean<- mean(post_pounds$pounds_sold)
 
-pre_2005_mean<- mean(preweb_2005$`Lbs. Sold`)
-pre_2006_mean<- mean(preweb_2006$`Lbs. Sold`)
-pre_2007_mean<- mean(preweb_2007$`Lbs. Sold`)
-pre_2008_mean<- mean(preweb_2008$`Lbs. Sold`)
+pre_2005_mean<- mean(preweb_2005$pounds_sold)
+pre_2006_mean<- mean(preweb_2006$pounds_sold)
+pre_2007_mean<- mean(preweb_2007$pounds_sold)
+pre_2008_mean<- mean(preweb_2008$pounds_sold)
 
-#We can use logistic regression to do recommendations and build a story
-
-
+#Plots
+R_LBS<-ggplot(fin, aes(pounds_sold, Revenue)) + geom_point()
+print(R_LBS)

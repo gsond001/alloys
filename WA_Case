@@ -3,6 +3,8 @@
 ##### TEAM 2 
 ##### Web Analytics Alloy 
 setwd("~/Documents/MBAN/Mod B/R/Project ")
+library(ggplot2)
+library(plotly)
 library(readxl)
 weekly_visits <- read_excel("Web Analytics Case Student Spreadsheet.xls", 
                             sheet = "Weekly Visits", skip = 4)
@@ -37,19 +39,16 @@ pre_promotion<- weekly_visits[15:35,]
 promotion<- weekly_visits[36:52,]
 post_promotion<- weekly_visits[53:66,]
 
-
 #Pre Website subsets
 preweb_2005<-pounds[1:52,]
 preweb_2006<-pounds[53:105,]
 preweb_2007<-pounds[106:157,]
 preweb_2008<-pounds[158:177,]
-
 #Website pounds
 initial_pounds<-fin[1:14,]
 pre_pounds<- fin[15:35,]
 pro_pounds<- fin[36:52,]
 post_pounds<- fin[53:66,]
-
 #means for weekly visits
 ini_v_mean<-mean(intial_promotion$Visits)
 pre_v_mean<- mean(pre_promotion$Visits)
@@ -62,8 +61,28 @@ pre_uq_mean<- mean(pre_promotion$`Unique Visits`)
 promo_uq_mean<- mean(promotion$`Unique Visits`)
 post_uq_mean<- mean(post_promotion$`Unique Visits`)
 
+#means for revenue
+ini_r_mean<-mean(initial_pounds$Revenue)
+pre_r_mean<- mean(pre_pounds$Revenue)
+promo_r_mean<- mean(pro_pounds$Revenue)
+post_r_mean<- mean(post_pounds$Revenue)
 
+#means for Profit
+ini_p_mean<-mean(initial_pounds$Profit)
+pre_p_mean<- mean(pre_pounds$Profit)
+promo_p_mean<- mean(pro_pounds$Profit)
+post_p_mean<- mean(post_pounds$Profit)
 
+#means for LBS Sold
+ini_lbs_mean<-mean(initial_pounds$`Lbs. Sold`)
+pre_lbs_mean<- mean(pre_pounds$`Lbs. Sold`)
+promo_lbs_mean<- mean(pro_pounds$`Lbs. Sold`)
+post_lbs_mean<- mean(post_pounds$`Lbs. Sold`)
+
+pre_2005_mean<- mean(preweb_2005$`Lbs. Sold`)
+pre_2006_mean<- mean(preweb_2006$`Lbs. Sold`)
+pre_2007_mean<- mean(preweb_2007$`Lbs. Sold`)
+pre_2008_mean<- mean(preweb_2008$`Lbs. Sold`)
 
 #We can use logistic regression to do recommendations and build a story
 

@@ -2,38 +2,106 @@
 ##### January 29th 2019
 ##### TEAM 2 
 ##### Web Analytics Alloy 
+
+
+#Importing the Dataset
 setwd("~/Documents/MBAN/Mod B/R/Project ")
+
+#Packages Used
 library(ggplot2)
 library(plotly)
 library(readxl)
 library(minpack.lm)
+
+
+
+#Importing the Weekly Tab
 weekly_visits <- read_excel("Web Analytics Case Student Spreadsheet.xls", 
                             sheet = "Weekly Visits", skip = 4)
 colnames(weekly_visits)<-c("week","visits","unique_visits","pageviews",
                            "page_visits","avg_time_on_site",
                            "bounce_rate","%_new_visits")
 
+
+#Importing Demographics
+library(readxl)
+demographics <- read_excel("Web Analytics Case Student Spreadsheet.xls", 
+                           sheet = "Demographics", col_names = FALSE)
+View(demographics)
+
+
+colnames(demographics)<-c("field", "visits")
+
+
+all_traffic_sources<- demographics[2:5,]
+colnames(all_traffic_sources)[1]<-c("all_traffic_sources")
+
+top_10_ref<-demographics[7:16,]
+colnames(top_10_ref)[1]<-c("top_10_referring_sites")
+
+Top_10_se<-demographics[18:27,]
+colnames(Top_10_se)<-c("Top_Ten_Search_Engine_Sources")
+
+top_10_geo<-demographics[29:38,]
+colnames(top_10_geo)<-c("top_10_geo")
+
+top_10_browser<-demographics[40:49,]
+colnames(top_10_browser)<-c("Top_Ten_Browsers_Used")
+
+top_10_OS<-demographics[51:60,]
+colnames(top_10_OS)<-c("Top_Ten_Operating_Systems_Used")
+
+
+top_ref_plot<- ggplot(data=top_10_ref, aes(top_10_referring_sites,visits))+ geom_col()
+print(top_ref_plot)
+
+
+#Importing Financial
 library(readxl)
 fin <- read_excel("Web Analytics Case Student Spreadsheet.xls", 
                   sheet = "Financials", skip = 4)
 
 colnames(fin)[4]<-c("pounds_sold")
 colnames(fin)[1]<-c("week")
+fin$costs<- c(fin$Revenue-fin$Profit)
+fin$rev_pound<-c(fin$Revenue/fin$pounds_sold)
 
+weekly$margin <- weekly$Revenue
+margin <- c()
+for(i in 1:nrow(weekly)){margin[i] <- weekly$Profit[i]/(weekly$Revenue[i]-weekly$Profit[i])}
+weekly$margin <- margin
+
+#Importing Pounds Sold
 library(readxl)
 pounds <- read_excel("Web Analytics Case Student Spreadsheet.xls", 
                      sheet = "Lbs. Sold", skip = 4)
 colnames(pounds)<-c("week","pounds_sold")
 
-
+#Importing  Daily Visits
 library(readxl)
 daily_visits <- read_excel("Web Analytics Case Student Spreadsheet.xls", 
                            sheet = "Daily Visits", skip = 4)
+
+
+
+#Joining Data
+library(sqldf)
+
+weekly <- sqldf("SELECT * 
+                FROM weekly_visits a
+                LEFT JOIN fin b
+                ON a.week = b.week
+                ")
+
+
+
+
 #Summary Stats
 summary(weekly_visits)
 summary(fin)
 summary(pounds)
 summary(daily_visits)
+
 #Standard Deviation 
 sd(weekly_visits$visits)
 sd(weekly_visits$unique_visits)
@@ -42,8 +110,9 @@ sd(fin$Profit)
 sd(pounds$pounds_sold)
 
 
+
 ##Promotion Schedule
-intial_promotion<- weekly_visits[1:14,]
+initial_promotion<- weekly_visits[1:14,]
 pre_promotion<- weekly_visits[15:35,]
 promotion<- weekly_visits[36:52,]
 post_promotion<- weekly_visits[53:66,]
@@ -59,6 +128,17 @@ initial_pounds<-fin[1:14,]
 pre_pounds<- fin[15:35,]
 pro_pounds<- fin[36:52,]
 post_pounds<- fin[53:66,]
+
+INI_M<- (sum(initial_pounds$Profit)/sum(initial_pounds$costs))*100
+print(INI_M)
+PRE_M <- (sum(pre_pounds$Profit)/sum(pre_pounds$costs))*100
+print(PRE_M)
+PRO_M<- (sum(pro_pounds$Profit)/sum(pro_pounds$costs))*100
+print(PRO_M)
+POST_ROI<- (sum(post_pounds$Profit)/sum(post_pounds$costs))*100
+print(POST_M)
+
+
 #means for weekly visits
 ini_v_mean<-mean(intial_promotion$visits)
 pre_v_mean<- mean(pre_promotion$visits)
@@ -94,35 +174,72 @@ pre_2006_mean<- mean(preweb_2006$pounds_sold)
 pre_2007_mean<- mean(preweb_2007$pounds_sold)
 pre_2008_mean<- mean(preweb_2008$pounds_sold)
 
-#Plots
+
+#PLOTS/GRAPHS/CHARTS
+
+#Time Series
+
+#Pounds Sold per Week since Begining
+require(xts)
+sold <- ts(pounds$pounds_sold, frequency = 12, start = c(2005, 5), end = c(2010,8), deltat = 1/6)
+plot(as.xts(sold), major.format = "%Y-%m", col = "red", main = "Pounds Sold All Time")
+
+
+
+#Pounds Sold per Week
+require(xts)
+Pounds <- ts(pounds$pounds_sold, frequency = 12, start = c(2008, 5), end = c(2009,8), deltat = 1/6)
+plot(as.xts(Pounds), major.format = "%Y-%m", col = "purple", main = "Pounds Sold")
+
+#Bounce Rate per Week
+require(xts)
+Bounce <- ts(weekly_visits$bounce_rate, frequency = 12, start = c(2008, 5), end = c(2009,8), deltat = 1/6)
+plot(as.xts(Bounce), major.format = "%Y-%m", col = "purple", main = "Bounce Rate")
+
+
+#Visits per Week but time series did not show it correctly
+require(xts)
+Visits <- ts(weekly_visits$visits, frequency = 12, start = c(2008, 5), end = c(2009,8), deltat = 1/6)
+plot(as.xts(Visits), major.format = "%Y-%m", col = "purple", main = "Visits per Week")
+#Visits Per Week on a bar chart 
+Visits<- ggplot(data=weekly_visits, aes(week, visits))+ geom_col()
+print(Visits)
+
+
+
+
+
+#Revenue/Pound Sold per Weeks
+require(xts)
+rev_lb <- ts(fin$rev_pound, frequency = 12, start = c(2008, 5), end = c(2009,8), deltat = 1/6)
+plot(as.xts(rev_lb), major.format = "%Y-%m", col = "blue", main = "Revenue per Pound")
+
+#Margin per Week
+require(xts)
+margin <- ts(weekly$margin, frequency = 12, start = c(2008, 5), end = c(2009,8), deltat = 1/6)
+plot(as.xts(roi_ts), major.format = "%Y-%m", col = "red", main = "Margin per Week")
+
+# Revenue per Week
+require(xts)
+Revenue_ts <- ts(weekly$Revenue, frequency = 12, start = c(2008, 5), end = c(2009,8), deltat = 1/6)
+plot(as.xts(Revenue_ts), major.format = "%Y-%m", col = "red", main = "Revenue per Week")
+
+
+# Profit per Week 
+require(xts)
+profit_ts <- ts(weekly$Profit, frequency = 12, start = c(2008, 5), end = c(2009,8), deltat = 1/6)
+plot(as.xts(profit_ts), major.format = "%Y-%m", col = "red", main = "Profit per Week")
+
+# Costs per Week 
+require(xts)
+costs_ts <- ts(fin$costs, frequency = 12, start = c(2008, 5), end = c(2009,8), deltat = 1/6)
+plot(as.xts(costs_ts), major.format = "%Y-%m", col = "red", main = "Costs per Week")
+
+
+## Scatter plots to find correlation
+#Pounds Sold per Revenue
 R_LBS<-ggplot(fin, aes(pounds_sold, Revenue)) + geom_point()
 print(R_LBS)
-
-#Model for ^ Line
-R_LBS_line<-lm(Revenue~pounds_sold,data=fin)
-summary(R_LBS_line)
-#R^2 = .7512
-
-#Plots
-
-library(sqldf)
-
-weekly <- sqldf("SELECT * 
-                    FROM weekly_visits a
-                LEFT JOIN fin b
-                ON a.week = b.week
-                ")
-
-
-# Revenue vs pounds sold scatter plot
-revenue_pounds <- ggplot(weekly, aes(pounds_sold, Revenue)) + geom_point()
-print(revenue_pounds)
-
-# Revenue vs pounds sold correlation coefficient
-w_pounds <- weekly$pounds_sold
-w_Revenue <- weekly$Revenue
-revenue_pounds_cor <- cor(w_pounds, w_Revenue)
-print(revenue_pounds)
 
 # Revenue vs visits scatter plot
 revenue_visits <- ggplot(weekly, aes(visits, Revenue)) + geom_point()
@@ -159,20 +276,11 @@ w_pv <- weekly$page_visits
 revenue_pv_cor <- cor(w_pv, w_Revenue)
 print(revenue_pv_cor)
 
+
 #Visits vs Profit 
 v_profit<- ggplot(weekly, aes(Profit, visits)) + geom_point()
 print(v_profit)
 
-#Visit vs Pounds Sold
-v_pounds<- ggplot(weekly, aes(pounds_sold, visits))+geom_point()
-print(v_pounds)
-
-#TIME SERIES
-sold <-ts(pounds$pounds_sold,frequency=12,start=c(2005,5),end = c(2009,8), deltat = 1/12) 
-plot.ts(sold,col="red",main= "web_pounds_sold")
-
-?ts
-#We can use logistic regression to do recommendations and build a story
 
 
 ###Question 8
@@ -186,6 +294,7 @@ z <- c()
 for(i in 1:nrow(pounds)){
   z[i] <- (pounds$pounds_sold[i]-mean(pounds$pounds_sold))/sd(pounds$pounds_sold)
 }
+print(z)
 pounds$zscore <- z
 new_z <- pounds[order(pounds$zscore),]
 new_z <- as.data.frame(new_z)
@@ -196,3 +305,7 @@ new_z$pounds_sold[289]#3 std
 summary(new_z)
 skew(new_z$pounds_sold,na.rm = TRUE,type = 3)
 kurtosi(new_z$pounds_sold,na.rm = TRUE,type = 3)
+hist(new_z$zscore,breaks = 50)
+
+
+

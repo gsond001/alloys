@@ -4,6 +4,9 @@
 ##### Web Analytics Alloy 
 
 
+
+
+
 #Importing the Dataset
 setwd("~/Documents/MBAN/Mod B/R/Project ")
 
@@ -52,10 +55,6 @@ top_10_OS<-demographics[51:60,]
 colnames(top_10_OS)<-c("Top_Ten_Operating_Systems_Used")
 
 
-top_ref_plot<- ggplot(data=top_10_ref, aes(top_10_referring_sites,visits))+ geom_col()
-print(top_ref_plot)
-
-
 #Importing Financial
 library(readxl)
 fin <- read_excel("Web Analytics Case Student Spreadsheet.xls", 
@@ -65,6 +64,17 @@ colnames(fin)[4]<-c("pounds_sold")
 colnames(fin)[1]<-c("week")
 fin$costs<- c(fin$Revenue-fin$Profit)
 fin$rev_pound<-c(fin$Revenue/fin$pounds_sold)
+
+#Joining Data
+library(sqldf)
+
+weekly <- sqldf("SELECT * 
+                FROM weekly_visits a
+                LEFT JOIN fin b
+                ON a.week = b.week
+                ")
+
+
 
 weekly$margin <- weekly$Revenue
 margin <- c()
@@ -84,14 +94,6 @@ daily_visits <- read_excel("Web Analytics Case Student Spreadsheet.xls",
 
 
 
-#Joining Data
-library(sqldf)
-
-weekly <- sqldf("SELECT * 
-                FROM weekly_visits a
-                LEFT JOIN fin b
-                ON a.week = b.week
-                ")
 
 
 
@@ -135,18 +137,18 @@ PRE_M <- (sum(pre_pounds$Profit)/sum(pre_pounds$costs))*100
 print(PRE_M)
 PRO_M<- (sum(pro_pounds$Profit)/sum(pro_pounds$costs))*100
 print(PRO_M)
-POST_ROI<- (sum(post_pounds$Profit)/sum(post_pounds$costs))*100
+POST_M<- (sum(post_pounds$Profit)/sum(post_pounds$costs))*100
 print(POST_M)
 
 
 #means for weekly visits
-ini_v_mean<-mean(intial_promotion$visits)
+ini_v_mean<-mean(initial_promotion$visits)
 pre_v_mean<- mean(pre_promotion$visits)
 promo_v_mean<- mean(promotion$visits)
 post_v_mean<- mean(post_promotion$visits)
 
 #means for Unique Visits
-ini_uq_mean<-mean(intial_promotion$unique_visits)
+ini_uq_mean<-mean(initial_promotion$unique_visits)
 pre_uq_mean<- mean(pre_promotion$unique_visits)
 promo_uq_mean<- mean(promotion$unique_visits)
 post_uq_mean<- mean(post_promotion$unique_visits)
@@ -169,11 +171,11 @@ pre_lbs_mean<- mean(pre_pounds$pounds_sold)
 promo_lbs_mean<- mean(pro_pounds$pounds_sold)
 post_lbs_mean<- mean(post_pounds$pounds_sold)
 
+
 pre_2005_mean<- mean(preweb_2005$pounds_sold)
 pre_2006_mean<- mean(preweb_2006$pounds_sold)
 pre_2007_mean<- mean(preweb_2007$pounds_sold)
 pre_2008_mean<- mean(preweb_2008$pounds_sold)
-
 
 #PLOTS/GRAPHS/CHARTS
 
@@ -183,6 +185,8 @@ pre_2008_mean<- mean(preweb_2008$pounds_sold)
 require(xts)
 sold <- ts(pounds$pounds_sold, frequency = 12, start = c(2005, 5), end = c(2010,8), deltat = 1/6)
 plot(as.xts(sold), major.format = "%Y-%m", col = "red", main = "Pounds Sold All Time")
+
+
 
 
 
@@ -217,7 +221,7 @@ plot(as.xts(rev_lb), major.format = "%Y-%m", col = "blue", main = "Revenue per P
 #Margin per Week
 require(xts)
 margin <- ts(weekly$margin, frequency = 12, start = c(2008, 5), end = c(2009,8), deltat = 1/6)
-plot(as.xts(roi_ts), major.format = "%Y-%m", col = "red", main = "Margin per Week")
+plot(as.xts(margin), major.format = "%Y-%m", col = "red", main = "Margin per Week")
 
 # Revenue per Week
 require(xts)
@@ -245,36 +249,20 @@ print(R_LBS)
 revenue_visits <- ggplot(weekly, aes(visits, Revenue)) + geom_point()
 print(revenue_visits)
 
-# Revenue vs visits correlation coefficient
-w_visits <- weekly$visits
-revenue_visits_cor <- cor(w_visits, w_Revenue)
-print(revenue_visits_cor)
 
 # pounds sold vs visits scatter plot
 pounds_visits <- ggplot(weekly, aes(visits, pounds_sold)) + geom_point()
 print(pounds_visits)
 
-# Revenue vs visits correlation coefficient
-pounds_visits_cor <- cor(w_visits, w_pounds)
-print(pounds_visits_cor)
 
 # Revenue vs avg time on site scatter plot
 revenue_time <- ggplot(weekly, aes(avg_time_on_site, Revenue)) + geom_point()
 print(revenue_time)
 
-# Revenue vs avg time on site correlation coefficient
-w_time <- weekly$avg_time_on_site
-revenue_time_cor <- cor(w_time, w_Revenue)
-print(revenue_time_cor)
 
 # Revenue vs page/visit scatter plot
 revenue_pv <- ggplot(weekly, aes(page_visits, Revenue)) + geom_point()
 print(revenue_pv)
-
-# Revenue vs page/visit correlation coefficient
-w_pv <- weekly$page_visits
-revenue_pv_cor <- cor(w_pv, w_Revenue)
-print(revenue_pv_cor)
 
 
 #Visits vs Profit 
@@ -304,8 +292,6 @@ new_z$pounds_sold[279]###2 std
 new_z$pounds_sold[289]#3 std
 summary(new_z)
 skew(new_z$pounds_sold,na.rm = TRUE,type = 3)
-kurtosi(new_z$pounds_sold,na.rm = TRUE,type = 3)
+kurtosis(new_z$pounds_sold,na.rm = TRUE,type = 3)
 hist(new_z$zscore,breaks = 50)
-
-
 

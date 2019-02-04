@@ -1,11 +1,9 @@
-##### Group Project
-##### January 29th 2019
-##### TEAM 2 
-##### Web Analytics Alloy 
 
 
-
-
+install.packages("dplyr")
+install.packages("magrittr")
+install.packages("purrr")
+install.packages("tidyr")
 
 #Importing the Dataset
 setwd("~/Documents/MBAN/Mod B/R/Project ")
@@ -15,7 +13,8 @@ library(ggplot2)
 library(plotly)
 library(readxl)
 library(minpack.lm)
-
+library(dplyr)
+library(magrittr)
 
 
 #Importing the Weekly Tab
@@ -178,6 +177,23 @@ pre_2007_mean<- mean(preweb_2007$pounds_sold)
 pre_2008_mean<- mean(preweb_2008$pounds_sold)
 
 #PLOTS/GRAPHS/CHARTS
+#Ploty LBS vs Visits
+
+p <- plot_ly(weekly) %>%
+  add_trace(x = ~week, y = ~visits, type = 'bar', name = 'Visits',
+            marker = list(color = '#C9EFF9'),
+            hoverinfo = "text",
+            text = ~paste(visits, ' clicks')) %>%
+  add_lines(x = ~week, y = ~pounds_sold, type = 'bar', name = 'Lbs Sold', yaxis = 'y2',
+            line = list(color = '#45171D'),
+            hoverinfo = "text",
+            text = ~paste(pounds_sold, 'lbs')) %>%
+  layout(title = 'Visits and Pounds per Week',
+         xaxis = list(title = ""),
+         yaxis = list(side = 'left', title = 'Visits per Week', showgrid = FALSE, zeroline = FALSE),
+         yaxis2 = list(side = 'right', overlaying = "y", title = 'Lbs per Week', showgrid = FALSE, zeroline = FALSE))
+print(p)
+
 
 #Time Series
 
@@ -185,6 +201,18 @@ pre_2008_mean<- mean(preweb_2008$pounds_sold)
 require(xts)
 sold <- ts(pounds$pounds_sold, frequency = 12, start = c(2005, 5), end = c(2010,8), deltat = 1/6)
 plot(as.xts(sold), major.format = "%Y-%m", col = "red", main = "Pounds Sold All Time")
+
+
+
+#Pounds Sold per Week
+sold_lbs<-ggplot(fin, aes(week, pounds_sold))+geom_col()
+print(sold_lbs)
+
+#Pounds Sold + weekly visits
+ggplot(weekly) +
+  geom_bar(aes(x = week, weight = visits)) +
+  geom_line(aes(x = week, y = pounds_sold))
+
 
 
 
@@ -196,15 +224,60 @@ Pounds <- ts(pounds$pounds_sold, frequency = 12, start = c(2008, 5), end = c(200
 plot(as.xts(Pounds), major.format = "%Y-%m", col = "purple", main = "Pounds Sold")
 
 #Bounce Rate per Week
+
 require(xts)
-Bounce <- ts(weekly_visits$bounce_rate, frequency = 12, start = c(2008, 5), end = c(2009,8), deltat = 1/6)
-plot(as.xts(Bounce), major.format = "%Y-%m", col = "purple", main = "Bounce Rate")
+Bounce <- ts(weekly_visits$bounce_rate, frequency = 66, start = c(2008, 5), end = c(2009,8), deltat = 1/6)
+plot(Bounce, col = "orange", main = "Bounce Rate")
+require(xts)
+Pounds_sd<-ts(pounds$pounds_sold, frequency = 66, start=c(2008,5), end=c(2009,8), deltat =1/6)
+plot(Pounds_sd,col= "orange", main= "Pounds Sold")
+
+
+
+weekly_df <- as.data.frame(weekly)
+par(mfcol=c(2,1))
+ggplot(data = weekly_df, aes(x = week, y = unique_visits, group = 1, main = "Unique Visits per Week")) +
+  geom_line(color = "orange", size = 2) +
+  geom_point(color = "orange") +
+  geom_vline(aes(xintercept = which(weekly_df$week == "Aug 31 - Sep 6")), size = 1) +
+  geom_vline(aes(xintercept = which(weekly_df$week == "Jan 25 - Jan 31")), size = 1) +
+  geom_vline(aes(xintercept = which(weekly_df$week == "May 24 - May 30")), size = 1) +
+  theme_minimal() +
+  ggtitle("Unique Visits per Week") +
+  theme(axis.text.x = element_blank(), 
+        axis.text.y = element_text(size = 14), 
+        axis.title = element_text(size = 14,face = "bold"), 
+        plot.title = element_text(size = 20, face = "bold"))
+ggplot(data = weekly_df, aes(x = week, y = Inquiries, group = 1, main = "Inquiries per Week")) +
+  geom_line(color = "orange", size = 2) +
+  geom_point(color = "orange") +
+  geom_vline(aes(xintercept = which(weekly_df$week == "Aug 31 - Sep 6")), size = 1) +
+  geom_vline(aes(xintercept = which(weekly_df$week == "Jan 25 - Jan 31")), size = 1) +
+  geom_vline(aes(xintercept = which(weekly_df$week == "May 24 - May 30")), size = 1) +
+  theme_minimal() +
+  ggtitle("Inquiries per Week") +
+  theme(axis.text.x = element_blank(), 
+        axis.text.y = element_text(size = 14), 
+        axis.title = element_text(size = 14,face = "bold"), 
+        plot.title = element_text(size = 20, face = "bold"))
+
+
+
+
+bounce_graph<-ggplot(data=weekly_visits, aes(x=week, y=bounce_rate))+geom_point()+geom_abline()
+print(bounce_graph)
+
+
+bounce_graph2<- plot(x=weekly_visits$week, y=weekly_visits$bounce_rate, type = "p")
+print(bounce_graph2)
 
 
 #Visits per Week but time series did not show it correctly
 require(xts)
 Visits <- ts(weekly_visits$visits, frequency = 12, start = c(2008, 5), end = c(2009,8), deltat = 1/6)
 plot(as.xts(Visits), major.format = "%Y-%m", col = "purple", main = "Visits per Week")
+
+
 #Visits Per Week on a bar chart 
 Visits<- ggplot(data=weekly_visits, aes(week, visits))+ geom_col()
 print(Visits)
@@ -255,6 +328,10 @@ pounds_visits <- ggplot(weekly, aes(visits, pounds_sold)) + geom_point()
 print(pounds_visits)
 
 
+pounds_visits <- ggplot(weekly, aes(bounce_rate, pounds_sold)) + geom_point()
+print(pounds_visits)
+
+
 # Revenue vs avg time on site scatter plot
 revenue_time <- ggplot(weekly, aes(avg_time_on_site, Revenue)) + geom_point()
 print(revenue_time)
@@ -269,7 +346,64 @@ print(revenue_pv)
 v_profit<- ggplot(weekly, aes(Profit, visits)) + geom_point()
 print(v_profit)
 
+#Pounds Sold vs Visits
+visit_pounds<-ggplot(weekly,aes(pounds_sold, visits))+geom_point(color="orange")+(xlabs="Pounds Sold"+ ylab="Visits")+ggtitle("Pounds Sold per Visit")+theme(plot.title = element_text(lineheight=.8, face="bold"))
+print(visit_pounds)
+dp <- ggplot(data=weekly, aes(x=week, y=pounds_sold)) + geom_point()
+print(dp)
 
+
+#Inquiry
+ggplot(df,aes(x=v1,y=v2,fill=v1))+geom_bar(stat='identity')+coord_flip()+ggtitle("Web Inquiry in 4 Period")+theme(plot.title = element_text(lineheight=.8, face="bold"))
+
+#pageviews
+ggplot(df,aes(x=v1,y=v3,fill=v1))+geom_bar(stat='identity')+coord_flip()+ggtitle("Pageviews in 4 Period")+theme(plot.title = element_text(lineheight=.8, face="bold"))
+
+#Regions
+region<-c("Eastern Europe", "Southern Europe", "South-Eastern Asia", "Southern Asia", "Northern Europe", "Eastern Asia", "Western Europe", "Central America", "North America", "South America")
+visits_r<-c(1427,1538,1968,2589,2721,3228,5214,6776,17509,22616)
+ggplot(data=top_10_geo,aes(x=reorder(region,visits_r), y=visits_r))+
+  geom_bar(stat='identity', color="orange")+coord_flip()+
+  xlab("Region")+ylab("Number of Visits")+ggtitle("Regions per Visits")+
+  theme(plot.title = element_text(lineheight = .8, face="bold"))
+
+
+ggplot(data=top_10_geo,aes(x=reorder(region, visits_r),y=visits_r, fill=visits_r))+geom_bar(stat = 'identity')+coord_flip()+ggtitle("Regions")+theme(plot.title = element_text(lineheight = .8, face="bold"))
+
+ggplot(data=top_10_geo,aes(x=reorder(region, visits_r),y=visits_r,fill=visits_r))+geom_bar(stat = 'identity',color="orange")+coord_flip()+ggtitle("Regions")+theme(plot.title = element_text(lineheight = .8, face="bold"))
+
+
+#Top ten Reffering Sites
+visits_vec<-c(310,337,344,379,389,582,693,3138,8044,15626)
+top_10_ref_vec<-c("psicofxp.com","mail.google.com","mu.com","thomasnet.com","freepatentsonline.com","searchportal.information.com","globalspec.com","sedoparking.com","pagead2.googlesyndication.com","pagead2.googlesyndication.com")
+
+ggplot(data = top_10_ref, aes(x=reorder(top_10_ref_vec,visits_vec), y=visits_vec))+
+  geom_bar(stat='identity', color ="orange")+coord_flip()+
+  xlab("Referring Websites")+ylab("Number of Visits")+
+  ggtitle("Top 10 Referring Sites")+
+  theme(plot.title = element_text(lineheight = .8, face="bold"))
+
+
+ggplot(data=inquiry, aes(Period, Inquires,fill=Period))+ geom_col()+coord_flip()
+print(In)
+v1<-factor(c('Initial','Pre','Pro','Post'),levels=c('Post','Pro','Pre','Initial'))
+
+v2<-c(102,136,108,76)
+v3 <- c(32867,31680,52731,26155)
+
+df<-data.frame(v1,v2)
+#Inquiry
+ggplot(df,aes(x=v1,y=v2,fill=v1))+geom_bar(stat='identity')+coord_flip()+ggtitle("Web Inquiry in 4 Period")+theme(plot.title = element_text(lineheight=.8, face="bold"))
+
+#pageviews
+ggplot(df,aes(x=v1,y=v3,fill=v1))+geom_bar(stat='identity')+coord_flip()+ggtitle("Pageviews in 4 Period")+theme(plot.title = element_text(lineheight=.8, face="bold"))
+       
+       
+       
+       
+       
+       
+       
 
 ###Question 8
 summary(pounds)
@@ -294,4 +428,6 @@ summary(new_z)
 skew(new_z$pounds_sold,na.rm = TRUE,type = 3)
 kurtosis(new_z$pounds_sold,na.rm = TRUE,type = 3)
 hist(new_z$zscore,breaks = 50)
+
+
 
